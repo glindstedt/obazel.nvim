@@ -1,4 +1,4 @@
-name: LuaRocks realase
+name: LuaRocks release
 on:
   push:
     tags:
