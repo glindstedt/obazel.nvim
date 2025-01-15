@@ -53,9 +53,9 @@ end
 
 function provider.generator(opts, cb)
     -- Resolve the target prefix for the given directory
-    local target_prefix, err = bazel.resolve_target_prefix(opts.dir)
-    if target_prefix == nil or err ~= nil then
-        vim.notify(err, vim.log.levels.ERROR)
+    local target_prefix, err1 = bazel.resolve_target_prefix(opts.dir)
+    if target_prefix == nil or err1 ~= nil then
+        vim.notify(err1, vim.log.levels.ERROR)
         cb({})
         return
     end
@@ -75,10 +75,9 @@ function provider.generator(opts, cb)
     for _, query_config in ipairs(config.overseer.generators) do
         local query = query_config.query_template:format(target_prefix)
 
-        ---@diagnostic disable-next-line: redefined-local
-        local targets, err = bazel.query(query)
-        if err ~= nil then
-            vim.notify(err, vim.log.levels.ERROR)
+        local targets, err2 = bazel.query(query)
+        if err2 ~= nil then
+            vim.notify(err2, vim.log.levels.ERROR)
         else
             for _, target in ipairs(targets) do
                 -- TODO toggleable in config to show short or long targets?

@@ -10,7 +10,7 @@ _default:
     @just --list --justfile {{justfile()}}
 
 check:
-    luacheck lua/obazel plugin/ spec/
+    luacheck lua/ plugin/ spec/
 
 format:
     stylua -v --verify lua/obazel/ plugin/
