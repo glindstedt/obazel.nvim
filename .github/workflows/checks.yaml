@@ -1,0 +1,22 @@
+name: Checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+jobs:
+  luacheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nebularg/actions-luacheck@v1.1.2
+        with:
+          files: '.'
+          config: 'https://github.com/glindstedt/obazel.nvim/blob/main/.luacheckrc'
+          annotate: 'error'
+  stylua:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - run: stylua --check .
