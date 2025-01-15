@@ -1,4 +1,4 @@
-local bazel = require('obazel.bazel')
+local bazel = require("obazel.bazel")
 
 local testdata_dir = vim.fn.fnamemodify(debug.getinfo(1).short_src, ":p:h") .. "/testdata"
 
@@ -9,7 +9,10 @@ local c_dir = ("%s/a/b/c"):format(workspace_dir)
 
 describe("bazel", function()
     it("resolve_workspace_dir() returns nil when not in a bazel workspace", function()
-        assert.are_nil(bazel.resolve_workspace_dir(testdata_dir), "resolve_workspace_dir(): should return nil when not in a bazel workspace")
+        assert.are_nil(
+            bazel.resolve_workspace_dir(testdata_dir),
+            "resolve_workspace_dir(): should return nil when not in a bazel workspace"
+        )
     end)
     it("resolve_workspace_dir() correctly resolves workspace dir", function()
         assert.are_equal(bazel.resolve_workspace_dir(workspace_dir), workspace_dir)
@@ -18,7 +21,10 @@ describe("bazel", function()
         assert.are_equal(bazel.resolve_workspace_dir(c_dir), workspace_dir)
     end)
     it("resolve_buildfile() returns nil when not in a bazel workspace", function()
-        assert.are_nil(bazel.resolve_buildfile(testdata_dir), "resolve_buildfile(): should return nil when not in a bazel workspace")
+        assert.are_nil(
+            bazel.resolve_buildfile(testdata_dir),
+            "resolve_buildfile(): should return nil when not in a bazel workspace"
+        )
     end)
     it("resolve_buildfile() correctly resolves the BUILD.bazel file", function()
         assert.are_equal(bazel.resolve_buildfile(workspace_dir), ("%s/BUILD.bazel"):format(workspace_dir))
