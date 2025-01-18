@@ -19,7 +19,7 @@ An [overseer.nvim](https://github.com/stevearc/overseer.nvim) template provider 
 The template provider needs to be registered with overseer:
 
 ```lua
-require("stevearc/overseer.nvim").setup({
+require("overseer").setup({
     templates = {
         "builtin",
         "obazel",
