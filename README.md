@@ -25,15 +25,15 @@ require("stevearc/overseer.nvim").setup({
         "obazel",
     },
 })
-# Or when using lazy.nvim:
-  {
-    "stevearc/overseer.nvim",
-    opts = {
-      templates = {
-        "builtin",
-        "obazel",
-      },
-  }
+-- Or when using lazy.nvim:
+{
+  "stevearc/overseer.nvim",
+  opts = {
+    templates = {
+      "builtin",
+      "obazel",
+    },
+}
 ```
 
 The template provider does not come with any default templates. They must be
