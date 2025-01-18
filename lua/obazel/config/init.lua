@@ -38,7 +38,7 @@
 ---             args = { "run" },
 ---             template_file_definition = {
 ---               tags = { "RUN" },
----               priority = 51,
+---               priority = 52,
 ---             },
 ---           },
 ---           {
