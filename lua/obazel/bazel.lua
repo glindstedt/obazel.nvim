@@ -1,9 +1,17 @@
-local config = require("obazel.config")
+---@mod obazel-nvim.bazel Bazel utilities
+---
+---@brief [[
+---
+---Utilities for working with Bazel workspaces
+---
+---@brief ]]
+
+local config = require("obazel.config.internal")
 
 local bazel = {}
 
 ---Resolves the WORKSPACE file path
----@param directory nil|string
+---@param directory nil|string (default: vim.fn.getcwd())
 ---@return nil|string
 function bazel.resolve_workspace_file(directory)
     local search_dir
@@ -20,7 +28,7 @@ function bazel.resolve_workspace_file(directory)
 end
 
 ---Resolves the WORKSPACE directory
----@param directory nil|string
+---@param directory nil|string (default: vim.fn.getcwd())
 ---@return nil|string
 function bazel.resolve_workspace_dir(directory)
     local workspace_file = bazel.resolve_workspace_file(directory)
@@ -42,7 +50,13 @@ function bazel.resolve_buildfile(directory)
     return vim.fn.fnamemodify(buildfile, ":p")
 end
 
----Resolves the bazel target prefix to use when querying for targets relevant to the given directory
+---Resolves the bazel target prefix to use when querying for targets relevant
+---to the given directory.
+---
+---For example if the provided directory is `one/two/three`, and the nearest
+---BUILD.bazel file is `one/two/BUILD.bazel`, the target prefix will be
+---`//one/two`
+---
 ---@param directory string
 ---@return nil|string prefix
 ---@return nil|string error_message
@@ -62,8 +76,9 @@ end
 
 ---Run a bazel query
 ---@param query string
----@return string[]
+---@return string[] targets
 ---@return nil|string error_message
+---@usage `bazel.query("//foo/bar/...")`
 function bazel.query(query)
     local obj = vim.system({ config.bazel_binary, "query", query }, { text = true }):wait()
 

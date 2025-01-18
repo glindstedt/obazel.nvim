@@ -19,6 +19,7 @@ source = {
 build = {
     type = "builtin",
     copy_directories = {
+        "doc",
         "plugin",
     },
 }

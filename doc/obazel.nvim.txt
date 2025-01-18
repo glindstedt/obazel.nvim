@@ -1,0 +1,224 @@
+==============================================================================
+obazel.nvim                                                        *obazel-nvim*
+
+
+An |overseer|.nvim TemplateProvider for Bazel workspaces.
+
+The TemplateProvider can be configured with static templates and template
+generators, which will appear when you run |:OverseerRun|. The template
+generators will run bazel queries to gather targets. The queries are
+templated with a target prefix relative to the nearest BUILD.bazel file to
+the file in the current buffer.
+
+If there are targets that should always be available regardless of the
+current open file, for example `bazel run //:gazelle`, they can be
+configured as static templates.
+
+See |obazel-nvim.config| for an example configuration.
+
+The template provider will need to be registered with overseer:
+>lua
+     require("overseer").setup({
+         templates = {
+             "builtin",
+             "obazel",
+         },
+     }
+
+See:
+     |overseer.wrap_template|
+     https://github.com/stevearc/overseer.nvim/blob/master/doc/guides.md
+
+==============================================================================
+Table of Contents                                              *obazel-contents*
+
+obazel.nvim ······················································ |obazel-nvim|
+obazel.nvim configuration ································· |obazel-nvim.config|
+Bazel utilities ············································ |obazel-nvim.bazel|
+
+==============================================================================
+obazel.nvim configuration                                   *obazel-nvim.config*
+
+
+For static task templates, see |obazel.TemplateConfig|. To configure template
+generators see |obazel.GeneratorConfig|. No templates are defined by default.
+
+------------------------------------------------------------------------------
+Example configuration
+>lua
+     ---@module 'obazel'
+     ---@type obazel.Config
+     vim.g.obazel = {
+       -- (optional) The binary used to invoke bazel commands
+       bazel_binary = "bazel",
+       overseer = {
+         -- static task templates
+         templates = {
+           {
+             args = { "run", "//:gazelle" },
+             template = { name = "bazel run //:gazelle", priority = 50 },
+           },
+         },
+         -- task templates generated via bazel queries
+         generators = {
+           {
+             query_template = "tests(%s:*)",
+             args = { "test" },
+             template_file_definition = {
+               tags = { "TEST" },
+               priority = 51,
+             },
+           },
+           {
+             query_template = 'kind(".*_binary", %s:*)',
+             args = { "run" },
+             template_file_definition = {
+               tags = { "RUN" },
+               priority = 51,
+             },
+           },
+           {
+             query_template = "kind(rule, %s:*)",
+             args = { "build" },
+             template_file_definition = {
+               tags = { "BUILD" },
+               priority = 100,
+             },
+           },
+         },
+       },
+     }
+
+
+obazel.Config                                                    *obazel.Config*
+
+    Fields: ~
+        {bazel_binary?}  (string)                 (optional) (default: "bazel")
+        {overseer?}      (obazel.OverseerConfig)  (optional)
+
+
+obazel.OverseerConfig                                    *obazel.OverseerConfig*
+
+    Fields: ~
+        {templates?}   (obazel.TemplateConfig[])   (optional) static task templates
+        {generators?}  (obazel.GeneratorConfig[])  (optional) bazel query based template generators
+
+
+obazel.TemplateConfig                                    *obazel.TemplateConfig*
+    A static template definition for bazel targets that you always want to have
+    available. For example `bazel run //:gazelle`.
+
+    Use the `template` argument to set the `name` and `priority` of the task:
+    >lua
+         {
+             args = { "run", "//:gazelle" },
+             template = { name = "bazel run //:gazelle", priority = 50 },
+         }
+
+    Fields: ~
+        {args}      (string[])                     the args that will be passed to bazel
+        {template}  (overseer.TemplateDefinition)  the template definition
+
+
+obazel.GeneratorConfig                                  *obazel.GeneratorConfig*
+    A template generator using a bazel query.
+
+    The query_template should be a string that contains '%s' which will be
+    replaced with the resolved `target_prefix` for the file in the current
+    buffer. The `target_prefix` is resolved using
+    |obazel-nvim.bazel.resolve_target_prefix|.
+
+    Use the `template_file_definition` to override values in the base template:
+    >lua
+         {
+           query_template = "tests(%s:*)",
+           args = { "test" },
+           template_file_definition = {
+             tags = { "TEST" },
+             priority = 51,
+           },
+         }
+
+    Fields: ~
+        {query_template}             (string)    a query template where '%s' will be replaced by the target_prefix
+        {args}                       (string[])  args that will be passed to bazel before the targets
+        {template_file_definition?}  (table)     (optional) overrides values in the base overseer.TemplateFileDefinition
+
+    See: ~
+        |overseer.wrap_template|
+
+
+==============================================================================
+Bazel utilities                                              *obazel-nvim.bazel*
+
+
+Utilities for working with Bazel workspaces
+
+
+                                      *obazel-nvim.bazel.resolve_workspace_file*
+bazel.resolve_workspace_file({directory})
+    Resolves the WORKSPACE file path
+
+    Parameters: ~
+        {directory}  (nil|string)  (default: vim.fn.getcwd())
+
+    Returns: ~
+        (nil|string)
+
+
+                                       *obazel-nvim.bazel.resolve_workspace_dir*
+bazel.resolve_workspace_dir({directory})
+    Resolves the WORKSPACE directory
+
+    Parameters: ~
+        {directory}  (nil|string)  (default: vim.fn.getcwd())
+
+    Returns: ~
+        (nil|string)
+
+
+bazel.resolve_buildfile({directory})       *obazel-nvim.bazel.resolve_buildfile*
+    Resolves the nearest BUILD.bazel file from the given directory
+
+    Parameters: ~
+        {directory}  (string)
+
+    Returns: ~
+        (nil|string)
+
+
+                                       *obazel-nvim.bazel.resolve_target_prefix*
+bazel.resolve_target_prefix({directory})
+    Resolves the bazel target prefix to use when querying for targets relevant
+    to the given directory.
+
+    For example if the provided directory is `one/two/three`, and the nearest
+    BUILD.bazel file is `one/two/BUILD.bazel`, the target prefix will be
+    `//one/two`
+
+
+    Parameters: ~
+        {directory}  (string)
+
+    Returns: ~
+        (nil|string)  prefix
+        (nil|string)  error_message
+
+
+bazel.query({query})                                   *obazel-nvim.bazel.query*
+    Run a bazel query
+
+    Parameters: ~
+        {query}  (string)
+
+    Returns: ~
+        (string[])    targets
+        (nil|string)  error_message
+
+    Usage: ~
+>lua
+        bazel.query("//foo/bar/...")
+<
+
+
+vim:tw=78:ts=8:noet:ft=help:norl:

@@ -1,5 +1,13 @@
+---@mod obazel-nvim.overseer overseer.nvim template provider for Bazel
+---
+---@brief [[
+---
+---Template provider for |overseer|.nvim.
+---
+---@brief ]]
+
 local bazel = require("obazel.bazel")
-local config = require("obazel.config")
+local config = require("obazel.config.internal")
 local overseer = require("overseer")
 
 local config_is_valid = require("obazel.config.check").validate(config)
@@ -47,6 +55,7 @@ provider.condition = {
     end,
 }
 
+---@param opts overseer.SearchParams
 function provider.cache_key(opts)
     return bazel.resolve_buildfile(opts.dir)
 end

@@ -1,3 +1,13 @@
+---@module 'obazel.config.internal'
+
+---@mod obazel-nvim.config.check
+---
+---@brief [[
+---
+---Config validation (internal)
+---
+---@brief ]]
+
 local check = {}
 
 ---@param tbl table to validate
