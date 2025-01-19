@@ -19,7 +19,7 @@ local function validate(tbl)
     return ok or false, "obazel: invalid config" .. (err and ": " .. err or "")
 end
 
----@param cfg obazel.InternalConfig | obazel.Config
+---@param cfg obazel.InternalConfig
 ---@return boolean is_valid
 ---@return nil|string error_message
 function check.validate(cfg)

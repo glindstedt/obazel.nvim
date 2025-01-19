@@ -1,7 +1,7 @@
 ---@mod obazel-nvim.health
 
 local check = require("obazel.config.check")
-local config = require("obazel.config")
+local config = require("obazel.config.internal")
 
 local health = {}
 
