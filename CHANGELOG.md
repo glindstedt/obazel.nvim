@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/glindstedt/obazel.nvim/compare/v0.1.0...v0.1.1) (2025-01-19)
+
+
+### Bug Fixes
+
+* health should check internal config ([d4d727f](https://github.com/glindstedt/obazel.nvim/commit/d4d727f031ea163f38dd7719339dae8d3f5d603a))
+
 ## [0.1.0](https://github.com/glindstedt/obazel.nvim/compare/v0.0.1...v0.1.0) (2025-01-18)
 
 
