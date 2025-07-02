@@ -38,16 +38,40 @@ function bazel.resolve_workspace_dir(directory)
     return vim.fn.fnamemodify(workspace_file, ":p:h")
 end
 
----Resolves the nearest BUILD.bazel file from the given directory
+---Resolves the nearest BUILD or BUILD.bazel file from the given directory
+---Prefers BUILD.bazel if both exist in the same directory
 ---@param directory string
 ---@return nil|string
 function bazel.resolve_buildfile(directory)
     local search_dir = vim.fn.fnamemodify(directory, ":p")
-    local buildfile = vim.fn.findfile("BUILD.bazel", search_dir .. ";")
-    if buildfile == "" then
+
+    -- Find both BUILD and BUILD.bazel files
+    local build_bazel = vim.fn.findfile("BUILD.bazel", search_dir .. ";")
+    local build_file = vim.fn.findfile("BUILD", search_dir .. ";")
+
+    -- If neither found, return nil
+    if build_bazel == "" and build_file == "" then
         return nil
+    -- If only one found, return that one
+    elseif build_bazel == "" then
+        return vim.fn.fnamemodify(build_file, ":p")
+    elseif build_file == "" then
+        return vim.fn.fnamemodify(build_bazel, ":p")
     end
-    return vim.fn.fnamemodify(buildfile, ":p")
+
+    -- Both found - compare directories to find the nearest
+    local build_bazel_dir = vim.fn.fnamemodify(build_bazel, ":p:h")
+    local build_file_dir = vim.fn.fnamemodify(build_file, ":p:h")
+
+    -- If they're in the same directory, prefer BUILD.bazel
+    if build_bazel_dir == build_file_dir then
+        return vim.fn.fnamemodify(build_bazel, ":p")
+    -- Otherwise, return the one that's closer (shorter path from search_dir)
+    elseif #build_bazel_dir >= #build_file_dir then
+        return vim.fn.fnamemodify(build_bazel, ":p")
+    else
+        return vim.fn.fnamemodify(build_file, ":p")
+    end
 end
 
 ---Resolves the bazel target prefix to use when querying for targets relevant
