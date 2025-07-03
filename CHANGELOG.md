@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/glindstedt/obazel.nvim/compare/v0.1.1...v0.2.0) (2025-07-02)
+
+
+### Features
+
+* support BUILD in addition to BUILD.bazel ([4f055b3](https://github.com/glindstedt/obazel.nvim/commit/4f055b3aab6bb9303c28c29fbfe652a70a5b58c0))
+
 ## [0.1.1](https://github.com/glindstedt/obazel.nvim/compare/v0.1.0...v0.1.1) (2025-01-19)
 
 
