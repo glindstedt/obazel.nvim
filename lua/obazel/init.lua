@@ -26,7 +26,6 @@
 ---     }
 ---
 ---See:
----     |overseer.wrap_template|
 ---     https://github.com/stevearc/overseer.nvim/blob/master/doc/guides.md
 
 ---@brief ]]
