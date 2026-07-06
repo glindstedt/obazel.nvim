@@ -11,6 +11,8 @@ local config = require("obazel.config.internal")
 local bazel = {}
 
 ---Resolves the WORKSPACE file path
+---Recognises MODULE.bazel, REPO.bazel (Bzlmod), WORKSPACE.bazel, and WORKSPACE
+---as workspace root markers, checked in that order of preference.
 ---@param directory nil|string (default: vim.fn.getcwd())
 ---@return nil|string
 function bazel.resolve_workspace_file(directory)
@@ -20,11 +22,13 @@ function bazel.resolve_workspace_file(directory)
     else
         search_dir = vim.fn.getcwd()
     end
-    local workspace_file = vim.fn.findfile("WORKSPACE", search_dir .. ";")
-    if workspace_file == "" then
-        return nil
+    for _, name in ipairs({ "MODULE.bazel", "REPO.bazel", "WORKSPACE.bazel", "WORKSPACE" }) do
+        local found = vim.fn.findfile(name, search_dir .. ";")
+        if found ~= "" then
+            return vim.fn.fnamemodify(found, ":p")
+        end
     end
-    return vim.fn.fnamemodify(workspace_file, ":p")
+    return nil
 end
 
 ---Resolves the WORKSPACE directory
