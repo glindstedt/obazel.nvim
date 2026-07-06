@@ -102,31 +102,36 @@ function bazel.resolve_target_prefix(directory)
     return "//" .. (relpath == "." and "" or relpath)
 end
 
----Run a bazel query
+---Run a bazel query asynchronously
 ---@param query string
----@return string[] targets
----@return nil|string error_message
----@usage `bazel.query("//foo/bar/...")`
-function bazel.query(query)
-    local obj = vim.system({ config.bazel_binary, "query", query }, { text = true }):wait()
+---@param callback fun(targets: string[], error_message: string|nil)
+---@usage `bazel.query("//foo/bar/...", function(targets, err) ... end)`
+function bazel.query(query, callback)
+    vim.system(
+        { config.bazel_binary, "query", query },
+        { text = true },
+        vim.schedule_wrap(function(obj)
+            -- TODO this is weird behavior that will hopefully get fixed
+            -- https://github.com/neovim/neovim/pull/26917
+            if obj == nil then
+                callback({}, "failed to execute query")
+                return
+            end
 
-    -- TODO this is weird behavior that will hopefully get fixed
-    -- https://github.com/neovim/neovim/pull/26917
-    if obj == nil then
-        return {}, "failed to execute query"
-    end
+            if obj.code ~= 0 then
+                vim.notify(("[stdout]:\n%s\n[stderr]:\n%s"):format(obj.stdout, obj.stderr), vim.log.levels.ERROR)
+                callback({}, "failed to execute query: code=" .. obj.code .. " signal=" .. obj.signal)
+                return
+            end
 
-    if obj.code ~= 0 then
-        vim.notify(("[stdout]:\n%s\n[stderr]:\n%s"):format(obj.stdout, obj.stderr), vim.log.levels.ERROR)
-        return {}, "failed to execute query: code=" .. obj.code .. " signal=" .. obj.signal
-    end
-
-    local targets = {}
-    local lines = vim.split(obj.stdout, "\n", { plain = true, trimempty = true })
-    for _, line in ipairs(lines) do
-        table.insert(targets, line)
-    end
-    return targets
+            local targets = {}
+            local lines = vim.split(obj.stdout, "\n", { plain = true, trimempty = true })
+            for _, line in ipairs(lines) do
+                table.insert(targets, line)
+            end
+            callback(targets, nil)
+        end)
+    )
 end
 
 return bazel
