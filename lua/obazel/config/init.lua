@@ -20,7 +20,7 @@
 ---         templates = {
 ---           {
 ---             args = { "run", "//:gazelle" },
----             template = { name = "bazel run //:gazelle", priority = 50 },
+---             template = { name = "bazel run //:gazelle" },
 ---           },
 ---         },
 ---         -- task templates generated via bazel queries
@@ -30,7 +30,6 @@
 ---             args = { "test" },
 ---             template_file_definition = {
 ---               tags = { "TEST" },
----               priority = 51,
 ---             },
 ---           },
 ---           {
@@ -38,7 +37,6 @@
 ---             args = { "run" },
 ---             template_file_definition = {
 ---               tags = { "RUN" },
----               priority = 52,
 ---             },
 ---           },
 ---           {
@@ -46,7 +44,6 @@
 ---             args = { "build" },
 ---             template_file_definition = {
 ---               tags = { "BUILD" },
----               priority = 100,
 ---             },
 ---           },
 ---         },
@@ -66,11 +63,11 @@
 ---A static template definition for bazel targets that you always want to have
 ---available. For example `bazel run //:gazelle`.
 ---
----Use the `template` argument to set the `name` and `priority` of the task:
+---Use the `template` argument to set the `name` of the task:
 --->lua
 ---     {
 ---         args = { "run", "//:gazelle" },
----         template = { name = "bazel run //:gazelle", priority = 50 },
+---         template = { name = "bazel run //:gazelle" },
 ---     }
 ---@class obazel.TemplateConfig
 ---@field args string[] the args that will be passed to bazel
@@ -90,14 +87,13 @@
 ---       args = { "test" },
 ---       template_file_definition = {
 ---         tags = { "TEST" },
----         priority = 51,
 ---       },
 ---     }
 ---@class obazel.GeneratorConfig
 ---@field query_template string a query template where '%s' will be replaced by the target_prefix
 ---@field args string[] args that will be passed to bazel before the targets
 ---@field template_file_definition? table (optional) overrides values in the base overseer.TemplateFileDefinition
----@see overseer.wrap_template
+---@see overseer.TemplateFileDefinition
 
 ---@type obazel.Config | fun():obazel.Config | nil
 vim.g.obazel = vim.g.obazel
