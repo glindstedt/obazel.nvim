@@ -16,9 +16,13 @@ An [overseer.nvim](https://github.com/stevearc/overseer.nvim) template provider 
 
 ## Configuration
 
-The template provider needs to be registered with overseer:
+obazel.nvim is configured by calling `require("obazel").setup({...})`, and
+the template provider needs to be registered with overseer:
 
 ```lua
+require("obazel").setup({
+    -- see "Example Configuration" below
+})
 require("overseer").setup({
     templates = {
         "builtin",
@@ -36,8 +40,12 @@ require("overseer").setup({
 }
 ```
 
+`obazel.setup()` must run before overseer collects templates (e.g. before
+`:OverseerRun` or `preload_task_cache()` is invoked), so call it as part of
+your plugin configuration.
+
 The template provider does not come with any default templates. They must be
-configured through the `vim.g.obazel` table.
+configured through `obazel.setup()`.
 
 > [!WARNING]
 > obazel.nvim runs `bazel query` asynchronously when populating the task list,
@@ -71,8 +79,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 
 ```lua
 ---@module 'obazel'
----@type obazel.Config
-vim.g.obazel = {
+require("obazel").setup({
   -- (optional) The binary used to invoke bazel commands
   -- bazel_binary = "bazel",
   overseer = {
@@ -133,7 +140,7 @@ vim.g.obazel = {
       },
     },
   },
-}
+})
 ```
 
 Each entry in `templates`/`generators` also accepts `args`, `after_target_args`,

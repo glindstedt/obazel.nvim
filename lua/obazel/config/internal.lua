@@ -20,25 +20,35 @@ local default_config = {
     },
 }
 
-local user_config = type(vim.g.obazel) == "function" and vim.g.obazel() or vim.g.obazel or {}
-
+---This table is returned by `require("obazel.config.internal")` and is
+---mutated in place by `config.setup()`, rather than replaced, so that
+---modules which grabbed a reference to it before `setup()` was called still
+---observe the final values.
 ---@type obazel.InternalConfig
-local config = vim.tbl_deep_extend("force", default_config, user_config, {
-    debug_info = {
-        unrecognized_configs = check.get_unrecognized_keys(user_config, default_config),
-    },
-})
+local config = vim.deepcopy(default_config)
 
-if #config.debug_info.unrecognized_configs > 0 then
-    vim.notify(
-        "unrecognized configs found in vim.g.obazel: " .. vim.inspect(config.debug_info.unrecognized_configs),
-        vim.log.levels.ERROR
-    )
-end
+---@param user_config? obazel.Config
+function config.setup(user_config)
+    user_config = user_config or {}
 
-local ok, err = check.validate(config)
-if not ok then
-    vim.notify("obazel: " .. err, vim.log.levels.ERROR)
+    local unrecognized_configs = check.get_unrecognized_keys(user_config, default_config)
+    local merged = vim.tbl_deep_extend("force", default_config, user_config)
+
+    config.bazel_binary = merged.bazel_binary
+    config.overseer = merged.overseer
+    config.debug_info = { unrecognized_configs = unrecognized_configs }
+
+    if #unrecognized_configs > 0 then
+        vim.notify(
+            "unrecognized configs passed to obazel.setup(): " .. vim.inspect(unrecognized_configs),
+            vim.log.levels.ERROR
+        )
+    end
+
+    local ok, err = check.validate(config)
+    if not ok then
+        vim.notify("obazel: " .. err, vim.log.levels.ERROR)
+    end
 end
 
 return config

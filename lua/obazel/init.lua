@@ -14,16 +14,18 @@
 ---current open file, for example `bazel run //:gazelle`, they can be
 ---configured as static templates.
 ---
----See |obazel-nvim.config| for an example configuration.
----
----The template provider will need to be registered with overseer:
+---Call |obazel.setup()| to configure obazel.nvim, then register the template
+---provider with overseer:
 --->lua
+---     require("obazel").setup({ ... })
 ---     require("overseer").setup({
 ---         templates = {
 ---             "builtin",
 ---             "obazel",
 ---         },
 ---     }
+---
+---See |obazel-nvim.config| for an example configuration.
 ---
 ---See:
 ---     https://github.com/stevearc/overseer.nvim/blob/master/doc/guides.md
@@ -33,5 +35,12 @@
 ---@toc obazel-contents
 
 local obazel = {}
+
+---Configure obazel.nvim. Must be called before overseer.nvim collects
+---templates (e.g. via |:OverseerRun| or `preload_task_cache()`).
+---@param opts? obazel.Config
+function obazel.setup(opts)
+    require("obazel.config.internal").setup(opts)
+end
 
 return obazel

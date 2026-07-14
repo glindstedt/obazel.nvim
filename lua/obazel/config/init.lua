@@ -11,8 +11,7 @@
 ---Example configuration
 --->lua
 ---     ---@module 'obazel'
----     ---@type obazel.Config
----     vim.g.obazel = {
+---     require("obazel").setup({
 ---       -- (optional) The binary used to invoke bazel commands
 ---       bazel_binary = "bazel",
 ---       overseer = {
@@ -48,7 +47,15 @@
 ---           },
 ---         },
 ---       },
----     }
+---     })
+---
+---Because |obazel.setup()| passes the config directly as a Lua table, values
+---like `template_file_definition` or `template` may contain overseer
+---components with configuration options, e.g.
+---`{ "on_output_parse", errorformat = "..." }`. This wasn't possible with the
+---old `vim.g.obazel`-based configuration, since values assigned to `vim.g`
+---variables are round-tripped through Vimscript, which has no way to
+---represent that shape of table.
 ---
 ---@brief ]]
 
@@ -108,9 +115,6 @@
 ---@field relative_file_root? string|fun(workspace_root: string): string (optional) root for resolving relative paths reported by output-parsing components (e.g. compiler diagnostics), or a function of the resolved bazel workspace root that returns one; defaults to the workspace root. Unlike overseer's own `relative_file_root` param, this does *not* fall back to task `cwd` when unset: bazel's own diagnostics are reported relative to the workspace root regardless of `cwd`, so obazel pins this independently rather than letting it silently track a `cwd` override.
 ---@field template_file_definition? table (optional) overrides values in the base overseer.TemplateFileDefinition
 ---@see overseer.TemplateFileDefinition
-
----@type obazel.Config | fun():obazel.Config | nil
-vim.g.obazel = vim.g.obazel
 
 local config = {}
 

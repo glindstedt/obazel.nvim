@@ -14,16 +14,18 @@ If there are targets that should always be available regardless of the
 current open file, for example `bazel run //:gazelle`, they can be
 configured as static templates.
 
-See |obazel-nvim.config| for an example configuration.
-
-The template provider will need to be registered with overseer:
+Call |obazel.setup()| to configure obazel.nvim, then register the template
+provider with overseer:
 >lua
+     require("obazel").setup({ ... })
      require("overseer").setup({
          templates = {
              "builtin",
              "obazel",
          },
      }
+
+See |obazel-nvim.config| for an example configuration.
 
 See:
      |overseer.wrap_template|
@@ -36,6 +38,14 @@ obazel.nvim ··································
 obazel.nvim configuration ································· |obazel-nvim.config|
 Bazel utilities ············································ |obazel-nvim.bazel|
 
+obazel.setup({opts?})                                        *obazel-nvim.setup*
+    Configure obazel.nvim. Must be called before overseer.nvim collects
+    templates (e.g. via |:OverseerRun| or `preload_task_cache()`).
+
+    Parameters: ~
+        {opts?}  (obazel.Config)
+
+
 ==============================================================================
 obazel.nvim configuration                                   *obazel-nvim.config*
 
@@ -47,8 +57,7 @@ generators see |obazel.GeneratorConfig|. No templates are defined by default.
 Example configuration
 >lua
      ---@module 'obazel'
-     ---@type obazel.Config
-     vim.g.obazel = {
+     require("obazel").setup({
        -- (optional) The binary used to invoke bazel commands
        bazel_binary = "bazel",
        overseer = {
@@ -108,7 +117,13 @@ Example configuration
            },
          },
        },
-     }
+     })
+
+In prior versions, obazel was configured with a `vim.g.obazel` variable.
+Values assigned to `vim.g` are round-tripped through Vimscript, which has no
+way to represent a table like `{ "on_output_parse", errorformat = "..." }`
+that mixes array and hash parts, so overseer components could never be
+configured this way under the old scheme.
 
 Each entry in `templates`/`generators` also accepts `args`, `after_target_args`,
 `binary`, `cwd`, `env`, `metadata`, `components`, and `relative_file_root`,

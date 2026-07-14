@@ -7,9 +7,8 @@
 ---@brief ]]
 
 local bazel = require("obazel.bazel")
+local check = require("obazel.config.check")
 local config = require("obazel.config.internal")
-
-local config_is_valid = require("obazel.config.check").validate(config)
 
 local function remove_prefix(str, prefix)
     if str:sub(1, #prefix) == prefix then
@@ -40,6 +39,7 @@ function provider.cache_key(opts)
 end
 
 function provider.generator(opts, cb)
+    local config_is_valid = check.validate(config)
     if not config_is_valid then
         return "Invalid obazel config"
     end
