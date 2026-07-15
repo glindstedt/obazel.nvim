@@ -82,6 +82,17 @@ vim.g.obazel = {
         args = { "run", "//:gazelle" },
         template = { name = "bazel run //:gazelle", priority = 50 },
       },
+      {
+        args = { "test", "//..." },
+        -- Appended after the target (unlike `args`, which comes before it),
+        -- e.g. for flags you want passed through to the test binary itself
+        -- via `--`.
+        after_target_args = { "--", "--some-flag" },
+        env = { BAZEL_CONFIG = "ci" },
+        metadata = { kind = "test" },
+        components = { "default", { "on_output_parse", errorformat = "..." } },
+        template = { name = "bazel test //..." },
+      },
     },
     -- Task templates generated via bazel queries. The '%s' sign in the
     -- query_template will be replaced with the target_prefix, which is the
@@ -115,3 +126,18 @@ vim.g.obazel = {
   },
 }
 ```
+
+Each entry in `templates`/`generators` also accepts `after_target_args`, `env`,
+`metadata`, and `components`, which are merged into the
+`overseer.TaskDefinition` produced for that template/generated task (see
+`obazel.TemplateConfig` and `obazel.GeneratorConfig`). These are distinct
+from `template`/`template_file_definition`, which only affect the
+`overseer.TemplateDefinition` shown in `:OverseerRun`; fields like
+`components`, `env`, and `metadata` have no effect there, since they belong
+to the task, not the template.
+
+The name of a generated task (from `generators`, not `templates`) starts
+with the tail of `config.bazel_binary` (e.g. `/usr/bin/bazelisk` becomes
+`bazelisk`), followed by `args`, the resolved target, and `after_target_args`,
+so task names stay accurate and distinct even when `bazel_binary` or
+`after_target_args` differ between generator entries.
