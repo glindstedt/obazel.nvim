@@ -91,6 +91,10 @@
 ---     }
 ---@class obazel.TemplateConfig
 ---@field args string[] the args that will be passed to bazel
+---@field after_target_args? string[] (optional) args appended after `args`, e.g. for flags to pass through to the target itself via `--`
+---@field env? table<string, string> (optional) environment variables for the task
+---@field metadata? table (optional) arbitrary metadata for the task
+---@field components? overseer.Serialized[] (optional) overseer components for the task
 ---@field template overseer.TemplateDefinition the template definition
 
 ---A template generator using a bazel query.
@@ -112,6 +116,10 @@
 ---@class obazel.GeneratorConfig
 ---@field query_template string a query template where '%s' will be replaced by the target_prefix
 ---@field args string[] args that will be passed to bazel before the targets
+---@field after_target_args? string[] (optional) args appended after the resolved target, e.g. for flags to pass through to the target itself via `--`
+---@field env? table<string, string> (optional) environment variables for generated tasks
+---@field metadata? table (optional) arbitrary metadata for generated tasks
+---@field components? overseer.Serialized[] (optional) overseer components for generated tasks
 ---@field template_file_definition? table (optional) overrides values in the base overseer.TemplateFileDefinition
 ---@see overseer.TemplateFileDefinition
 
