@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1](https://github.com/glindstedt/obazel.nvim/compare/v0.2.0...v0.2.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* run `bazel query` asynchronously to avoid blocking the UI ([#14](https://github.com/glindstedt/obazel.nvim/issues/14)) ([6ede640](https://github.com/glindstedt/obazel.nvim/commit/6ede640ae21ede633fe06d8043d6aa4b61808127))
+* support `MODULE.bazel`, `REPO.bazel`, and `WORKSPACE.bazel` as workspace roots ([#12](https://github.com/glindstedt/obazel.nvim/issues/12)) ([2a232b1](https://github.com/glindstedt/obazel.nvim/commit/2a232b170e17fee3f6ca41615b66987a55a2a248))
+* update to current overseer.nvim template provider API ([#11](https://github.com/glindstedt/obazel.nvim/issues/11)) ([f2d624d](https://github.com/glindstedt/obazel.nvim/commit/f2d624d5d9cff47f2ee6ac1f5cf08f3522b69d7b)), closes [#9](https://github.com/glindstedt/obazel.nvim/issues/9) [#10](https://github.com/glindstedt/obazel.nvim/issues/10)
+
 ## [0.2.0](https://github.com/glindstedt/obazel.nvim/compare/v0.1.1...v0.2.0) (2025-07-02)
 
 
