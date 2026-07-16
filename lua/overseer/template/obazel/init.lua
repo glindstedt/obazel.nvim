@@ -57,35 +57,46 @@ function provider.generator(opts, cb)
         )
     end
 
-    for _, query_config in ipairs(config.overseer.generators) do
-        local query = query_config.query_template:format(target_prefix)
+    local generators = config.overseer.generators
+    local pending = #generators
 
-        local targets, err2 = bazel.query(query)
-        if err2 ~= nil then
-            vim.notify(err2, vim.log.levels.ERROR)
-        else
-            for _, target in ipairs(targets) do
-                -- TODO toggleable in config to show short or long targets?
-                local short_target = remove_prefix(target, target_prefix)
-                local qargs = vim.list_extend(vim.deepcopy(query_config.args), { target })
-
-                table.insert(
-                    templates,
-                    vim.tbl_deep_extend("force", {
-                        name = ("bazel %s %s"):format(table.concat(query_config.args, " "), short_target),
-                        builder = function()
-                            return {
-                                cmd = { config.bazel_binary },
-                                args = qargs,
-                            }
-                        end,
-                    }, query_config.template_file_definition or {})
-                )
-            end
-        end
+    if pending == 0 then
+        cb(templates)
+        return
     end
 
-    cb(templates)
+    for _, query_config in ipairs(generators) do
+        local query = query_config.query_template:format(target_prefix)
+
+        bazel.query(query, function(targets, err2)
+            if err2 ~= nil then
+                vim.notify(err2, vim.log.levels.ERROR)
+            else
+                for _, target in ipairs(targets) do
+                    -- TODO toggleable in config to show short or long targets?
+                    local short_target = remove_prefix(target, target_prefix)
+                    local qargs = vim.list_extend(vim.deepcopy(query_config.args), { target })
+
+                    table.insert(
+                        templates,
+                        vim.tbl_deep_extend("force", {
+                            name = ("bazel %s %s"):format(table.concat(query_config.args, " "), short_target),
+                            builder = function()
+                                return {
+                                    cmd = { config.bazel_binary },
+                                    args = qargs,
+                                }
+                            end,
+                        }, query_config.template_file_definition or {})
+                    )
+                end
+            end
+            pending = pending - 1
+            if pending == 0 then
+                cb(templates)
+            end
+        end)
+    end
 end
 
 return provider

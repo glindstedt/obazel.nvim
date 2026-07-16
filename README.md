@@ -39,6 +39,34 @@ require("overseer").setup({
 The template provider does not come with any default templates. They must be
 configured through the `vim.g.obazel` table.
 
+> [!WARNING]
+> obazel.nvim runs `bazel query` asynchronously when populating the task list,
+> which avoids freezing the UI while the query runs. However, overseer.nvim
+> imposes a default timeout of 3000ms (`template_timeout_ms`) on template
+> providers; if the Bazel server is not yet running or the workspace is large,
+> the query may not complete in time and `:OverseerRun` may silently show no
+> results from obazel.nvim.
+
+If `:OverseerRun` doesn't seem to do anything on first run, or your picker
+doesn't show any obazel-configured tasks, try increasing the timeout in your overseer setup:
+
+```lua
+require("overseer").setup({
+    template_timeout_ms = 10000,
+})
+```
+
+Alternatively, you can pre-warm the cache when a buffer is opened so the query
+runs in the background before you invoke `:OverseerRun`:
+
+```lua
+vim.api.nvim_create_autocmd("BufEnter", {
+    callback = function()
+        require("overseer").preload_task_cache()
+    end,
+})
+```
+
 ### Example Configuration
 
 ```lua
