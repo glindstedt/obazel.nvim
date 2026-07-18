@@ -56,6 +56,7 @@ function provider.generator(opts, cb)
     for _, template_config in ipairs(config.overseer.templates) do
         local binary = template_config.binary or config.bazel_binary
         local cwd = resolve_workspace_relative(template_config.cwd, workspace_root)
+        local relative_file_root = resolve_workspace_relative(template_config.relative_file_root, workspace_root)
 
         table.insert(
             templates,
@@ -74,6 +75,7 @@ function provider.generator(opts, cb)
                     env = { type = "opaque", optional = true, default = template_config.env },
                     metadata = { type = "opaque", optional = true, default = template_config.metadata },
                     components = { type = "opaque", optional = true, default = template_config.components },
+                    relative_file_root = { type = "string", optional = true, default = relative_file_root },
                 },
                 builder = function(params)
                     vim.list_extend(params.args, params.after_target_args)
@@ -84,6 +86,12 @@ function provider.generator(opts, cb)
                         env = params.env,
                         metadata = params.metadata,
                         components = params.components,
+                        -- Picked up by any attached component whose param
+                        -- has `default_from_task = true`, e.g.
+                        -- `on_output_parse`'s `relative_file_root`, so
+                        -- relative diagnostic paths resolve against the
+                        -- bazel workspace root instead of task cwd.
+                        default_component_params = { relative_file_root = params.relative_file_root },
                     }
                 end,
             }, template_config.template)
@@ -106,6 +114,7 @@ function provider.generator(opts, cb)
         local args = query_config.args or {}
         local after_target_args = query_config.after_target_args or {}
         local cwd = resolve_workspace_relative(query_config.cwd, workspace_root)
+        local relative_file_root = resolve_workspace_relative(query_config.relative_file_root, workspace_root)
 
         bazel.query(query, function(targets, err2)
             if err2 ~= nil then
@@ -149,6 +158,11 @@ function provider.generator(opts, cb)
                                     default = query_config.components,
                                 },
                                 cwd = { type = "string", optional = true, default = cwd },
+                                relative_file_root = {
+                                    type = "string",
+                                    optional = true,
+                                    default = relative_file_root,
+                                },
                             },
                             builder = function(params)
                                 local qargs = vim.deepcopy(params.args)
@@ -161,6 +175,7 @@ function provider.generator(opts, cb)
                                     env = params.env,
                                     metadata = params.metadata,
                                     components = params.components,
+                                    default_component_params = { relative_file_root = params.relative_file_root },
                                 }
                             end,
                         }, query_config.template_file_definition or {})

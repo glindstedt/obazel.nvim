@@ -137,10 +137,11 @@ vim.g.obazel = {
 ```
 
 Each entry in `templates`/`generators` also accepts `args`, `after_target_args`,
-`binary`, `cwd`, `env`, `metadata`, and `components`, which are merged into
-the `overseer.TaskDefinition` produced for that template/generated task (see
-`obazel.TemplateConfig` and `obazel.GeneratorConfig`). These are distinct
-from `template`/`template_file_definition`, which only affect the
+`binary`, `cwd`, `env`, `metadata`, `components`, and `relative_file_root`,
+which are merged into the `overseer.TaskDefinition` produced for that
+template/generated task (see `obazel.TemplateConfig` and
+`obazel.GeneratorConfig`). These are distinct from
+`template`/`template_file_definition`, which only affect the
 `overseer.TemplateDefinition` shown in `:OverseerRun`; fields like
 `components`, `env`, and `metadata` have no effect there, since they belong
 to the task, not the template. `args` and `binary` are both optional:
@@ -148,10 +149,12 @@ omitting `args` produces a command with none (just `binary target` for
 generators), and omitting `binary` falls back to the top-level
 `bazel_binary`.
 
-`cwd` sets the task's working directory. It defaults to the resolved bazel
-workspace root, and can be overridden with a fixed string or a function that
-takes the workspace root and returns the directory to use, e.g. to fall
-back to Neovim's own cwd instead:
+`cwd` sets the task's working directory, and `relative_file_root` is used to
+resolve relative paths reported by components like `on_output_parse` (e.g.
+compiler diagnostics). Both default to the resolved bazel workspace root, and
+both can be overridden with a fixed string or a function that takes the
+workspace root and returns the path to use, e.g. to fall back to Neovim's
+own cwd instead:
 
 ```lua
 {
@@ -162,6 +165,14 @@ back to Neovim's own cwd instead:
   template = { name = "bazel run //:gazelle" },
 }
 ```
+
+`relative_file_root` is resolved independently of `cwd`, and does *not* fall
+back to task `cwd` when left unset the way overseer's own `relative_file_root`
+component param does. Bazel's own diagnostics are reported relative to the
+workspace root regardless of where the task actually runs, so if you override
+`cwd` (e.g. to run a task from Neovim's cwd, as above) without also touching
+`relative_file_root`, diagnostics still resolve against the workspace root,
+which is almost always what you want.
 
 The name of a generated task (from `generators`, not `templates`) starts
 with the tail of `binary` (its own `binary` if set, otherwise the tail of
@@ -175,8 +186,8 @@ Because `template`/`template_file_definition` are plain
 can also supply your own `builder` there to fully replace obazel's. Doing so
 still gives you access to everything obazel would otherwise have used to
 build the task: `binary`, `args`, `after_target_args`, `cwd`, `env`, `metadata`,
-`components`, and (for `generators` only) the resolved `target`, via the
-`params` argument overseer passes to `builder(params)`:
+`components`, `relative_file_root`, and (for `generators` only) the resolved
+`target`, via the `params` argument overseer passes to `builder(params)`:
 
 ```lua
 {
