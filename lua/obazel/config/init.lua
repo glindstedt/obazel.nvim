@@ -97,6 +97,7 @@
 ---@field env? table<string, string> (optional) environment variables for the task
 ---@field metadata? table (optional) arbitrary metadata for the task
 ---@field components? overseer.Serialized[] (optional) overseer components for the task
+---@field relative_file_root? string|fun(workspace_root: string): string (optional) root for resolving relative paths reported by output-parsing components (e.g. compiler diagnostics), or a function of the resolved bazel workspace root that returns one; defaults to the workspace root. Unlike overseer's own `relative_file_root` param, this does *not* fall back to task `cwd` when unset: bazel's own diagnostics are reported relative to the workspace root regardless of `cwd`, so obazel pins this independently rather than letting it silently track a `cwd` override.
 ---@field template overseer.TemplateDefinition the template definition
 
 ---A template generator using a bazel query.
@@ -124,6 +125,7 @@
 ---@field env? table<string, string> (optional) environment variables for generated tasks
 ---@field metadata? table (optional) arbitrary metadata for generated tasks
 ---@field components? overseer.Serialized[] (optional) overseer components for generated tasks
+---@field relative_file_root? string|fun(workspace_root: string): string (optional) root for resolving relative paths reported by output-parsing components (e.g. compiler diagnostics), or a function of the resolved bazel workspace root that returns one; defaults to the workspace root. Unlike overseer's own `relative_file_root` param, this does *not* fall back to task `cwd` when unset: bazel's own diagnostics are reported relative to the workspace root regardless of `cwd`, so obazel pins this independently rather than letting it silently track a `cwd` override.
 ---@field template_file_definition? table (optional) overrides values in the base overseer.TemplateFileDefinition
 ---@see overseer.TemplateFileDefinition
 

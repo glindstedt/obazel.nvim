@@ -132,14 +132,15 @@ obazel.TemplateConfig                                    *obazel.TemplateConfig*
          }
 
     Fields: ~
-        {args?}               (string[])                                  (optional) the args that will be passed to bazel; omit for none, e.g. `binary target`
-        {after_target_args?}  (string[])                                  (optional) args appended after `args`, e.g. for flags to pass through to the target itself via `--`
-        {binary?}             (string)                                    (optional) override the configured `bazel_binary` for this template
-        {cwd?}                (string|fun(workspace_root:string):string)  (optional) task working directory, or a function of the resolved bazel workspace root that returns one; defaults to the workspace root
-        {env?}                (table<string,string>)                      (optional) environment variables for the task
-        {metadata?}           (table)                                     (optional) arbitrary metadata for the task
-        {components?}         (overseer.Serialized[])                     (optional) overseer components for the task
-        {template}            (overseer.TemplateDefinition)               the template definition
+        {args?}                (string[])                                  (optional) the args that will be passed to bazel; omit for none, e.g. `binary target`
+        {after_target_args?}   (string[])                                  (optional) args appended after `args`, e.g. for flags to pass through to the target itself via `--`
+        {binary?}              (string)                                    (optional) override the configured `bazel_binary` for this template
+        {cwd?}                 (string|fun(workspace_root:string):string)  (optional) task working directory, or a function of the resolved bazel workspace root that returns one; defaults to the workspace root
+        {env?}                 (table<string,string>)                      (optional) environment variables for the task
+        {metadata?}            (table)                                     (optional) arbitrary metadata for the task
+        {components?}          (overseer.Serialized[])                     (optional) overseer components for the task
+        {relative_file_root?}  (string|fun(workspace_root:string):string)  (optional) root for resolving relative paths reported by output-parsing components (e.g. compiler diagnostics), or a function of the resolved bazel workspace root that returns one; defaults to the workspace root. Unlike overseer's own `relative_file_root` param, this does *not* fall back to task `cwd` when unset: bazel's own diagnostics are reported relative to the workspace root regardless of `cwd`, so obazel pins this independently rather than letting it silently track a `cwd` override.
+        {template}             (overseer.TemplateDefinition)               the template definition
 
 
 obazel.GeneratorConfig                                  *obazel.GeneratorConfig*
@@ -169,6 +170,7 @@ obazel.GeneratorConfig                                  *obazel.GeneratorConfig*
         {env?}                       (table<string,string>)                      (optional) environment variables for generated tasks
         {metadata?}                  (table)                                     (optional) arbitrary metadata for generated tasks
         {components?}                (overseer.Serialized[])                     (optional) overseer components for generated tasks
+        {relative_file_root?}        (string|fun(workspace_root:string):string)  (optional) root for resolving relative paths reported by output-parsing components (e.g. compiler diagnostics), or a function of the resolved bazel workspace root that returns one; defaults to the workspace root. Unlike overseer's own `relative_file_root` param, this does *not* fall back to task `cwd` when unset: bazel's own diagnostics are reported relative to the workspace root regardless of `cwd`, so obazel pins this independently rather than letting it silently track a `cwd` override.
         {template_file_definition?}  (table)                                     (optional) overrides values in the base overseer.TemplateFileDefinition
 
     See: ~
