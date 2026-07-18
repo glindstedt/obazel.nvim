@@ -73,6 +73,7 @@
 ---@field args? string[] (optional) the args that will be passed to bazel; omit for none, e.g. `binary target`
 ---@field after_target_args? string[] (optional) args appended after `args`, e.g. for flags to pass through to the target itself via `--`
 ---@field binary? string (optional) override the configured `bazel_binary` for this template
+---@field cwd? string|fun(workspace_root: string): string (optional) task working directory, or a function of the resolved bazel workspace root that returns one; defaults to the workspace root
 ---@field env? table<string, string> (optional) environment variables for the task
 ---@field metadata? table (optional) arbitrary metadata for the task
 ---@field components? overseer.Serialized[] (optional) overseer components for the task
@@ -99,6 +100,7 @@
 ---@field args? string[] (optional) args that will be passed to bazel before the targets; omit for none, e.g. `binary target`
 ---@field after_target_args? string[] (optional) args appended after the resolved target, e.g. for flags to pass through to the target itself via `--`
 ---@field binary? string (optional) override the configured `bazel_binary` for generated tasks
+---@field cwd? string|fun(workspace_root: string): string (optional) task working directory, or a function of the resolved bazel workspace root that returns one; defaults to the workspace root
 ---@field env? table<string, string> (optional) environment variables for generated tasks
 ---@field metadata? table (optional) arbitrary metadata for generated tasks
 ---@field components? overseer.Serialized[] (optional) overseer components for generated tasks

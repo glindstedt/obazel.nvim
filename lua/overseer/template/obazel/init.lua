@@ -19,6 +19,16 @@ local function remove_prefix(str, prefix)
     end
 end
 
+---@param value string|fun(workspace_root: string):string|nil
+---@param workspace_root string
+---@return string
+local function resolve_workspace_relative(value, workspace_root)
+    if type(value) == "function" then
+        return value(workspace_root)
+    end
+    return value or workspace_root
+end
+
 ---@type overseer.TemplateProvider
 local provider = {
     name = "bazel",
@@ -38,12 +48,14 @@ function provider.generator(opts, cb)
     if err1 ~= nil then
         return err1
     end
+    local workspace_root = bazel.resolve_workspace_dir(opts.dir)
 
     ---@type overseer.TemplateDefinition[]
     local templates = {}
 
     for _, template_config in ipairs(config.overseer.templates) do
         local binary = template_config.binary or config.bazel_binary
+        local cwd = resolve_workspace_relative(template_config.cwd, workspace_root)
 
         table.insert(
             templates,
@@ -58,6 +70,7 @@ function provider.generator(opts, cb)
                         optional = true,
                         default = template_config.after_target_args or {},
                     },
+                    cwd = { type = "string", optional = true, default = cwd },
                     env = { type = "opaque", optional = true, default = template_config.env },
                     metadata = { type = "opaque", optional = true, default = template_config.metadata },
                     components = { type = "opaque", optional = true, default = template_config.components },
@@ -67,6 +80,7 @@ function provider.generator(opts, cb)
                     return {
                         cmd = { params.binary },
                         args = params.args,
+                        cwd = params.cwd,
                         env = params.env,
                         metadata = params.metadata,
                         components = params.components,
@@ -91,6 +105,7 @@ function provider.generator(opts, cb)
         local binary_tail = vim.fn.fnamemodify(binary, ":t")
         local args = query_config.args or {}
         local after_target_args = query_config.after_target_args or {}
+        local cwd = resolve_workspace_relative(query_config.cwd, workspace_root)
 
         bazel.query(query, function(targets, err2)
             if err2 ~= nil then
@@ -133,6 +148,7 @@ function provider.generator(opts, cb)
                                     optional = true,
                                     default = query_config.components,
                                 },
+                                cwd = { type = "string", optional = true, default = cwd },
                             },
                             builder = function(params)
                                 local qargs = vim.deepcopy(params.args)
@@ -141,6 +157,7 @@ function provider.generator(opts, cb)
                                 return {
                                     cmd = { params.binary },
                                     args = qargs,
+                                    cwd = params.cwd,
                                     env = params.env,
                                     metadata = params.metadata,
                                     components = params.components,
