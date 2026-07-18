@@ -156,8 +156,8 @@ so a `templates`/`generators` entry that carries nontrivial components
 can only be expressed this way.
 
 Each entry in `templates`/`generators` also accepts `args`, `after_target_args`,
-`binary`, `env`, `metadata`, and `components`, which are merged into the
-`overseer.TaskDefinition` produced for that template/generated task (see
+`binary`, `cwd`, `env`, `metadata`, and `components`, which are merged into
+the `overseer.TaskDefinition` produced for that template/generated task (see
 `obazel.TemplateConfig` and `obazel.GeneratorConfig`). These are distinct
 from `template`/`template_file_definition`, which only affect the
 `overseer.TemplateDefinition` shown in `:OverseerRun`; fields like
@@ -166,6 +166,21 @@ to the task, not the template. `args` and `binary` are both optional:
 omitting `args` produces a command with none (just `binary target` for
 generators), and omitting `binary` falls back to the top-level
 `bazel_binary`.
+
+`cwd` sets the task's working directory. It defaults to the resolved bazel
+workspace root, and can be overridden with a fixed string or a function that
+takes the workspace root and returns the directory to use, e.g. to fall
+back to Neovim's own cwd instead:
+
+```lua
+{
+  args = { "run", "//:gazelle" },
+  cwd = function(workspace_root)
+    return vim.fn.getcwd()
+  end,
+  template = { name = "bazel run //:gazelle" },
+}
+```
 
 The name of a generated task (from `generators`, not `templates`) starts
 with the tail of `binary` (its own `binary` if set, otherwise the tail of
@@ -178,7 +193,7 @@ Because `template`/`template_file_definition` are plain
 `overseer.TemplateDefinition`/`overseer.TemplateFileDefinition` tables, you
 can also supply your own `builder` there to fully replace obazel's. Doing so
 still gives you access to everything obazel would otherwise have used to
-build the task: `binary`, `args`, `after_target_args`, `env`, `metadata`,
+build the task: `binary`, `args`, `after_target_args`, `cwd`, `env`, `metadata`,
 `components`, and (for `generators` only) the resolved `target`, via the
 `params` argument overseer passes to `builder(params)`:
 
