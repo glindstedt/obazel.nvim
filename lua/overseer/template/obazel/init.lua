@@ -137,10 +137,22 @@ function provider.generator(opts, cb)
                     table.insert(name_parts, short_target)
                     vim.list_extend(name_parts, after_target_args)
 
+                    -- Same order as `name_parts`, but with the fully-qualified
+                    -- `target` and the actual configured `binary`, so this is
+                    -- the exact command line that will be run. Used as an
+                    -- alias so tasks can be looked up by the command a user
+                    -- would type, in addition to the bare `target` alias
+                    -- below.
+                    local command_parts = { binary }
+                    vim.list_extend(command_parts, args)
+                    table.insert(command_parts, target)
+                    vim.list_extend(command_parts, after_target_args)
+
                     table.insert(
                         templates,
                         vim.tbl_deep_extend("force", {
                             name = table.concat(name_parts, " "),
+                            aliases = { target, table.concat(command_parts, " ") },
                             ---@type overseer.Params
                             params = {
                                 binary = { type = "string", optional = true, default = binary },
