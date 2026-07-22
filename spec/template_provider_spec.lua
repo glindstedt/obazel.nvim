@@ -108,3 +108,69 @@ describe("overseer.template.obazel provider aliases", function()
         end
     end)
 end)
+
+--- Simulates overseer's own param resolution (using each param's default),
+--- since the provider module doesn't depend on overseer being on the
+--- runtimepath to be unit-tested.
+---@param tmpl overseer.TemplateDefinition
+---@return table
+local function default_params(tmpl)
+    local params = {}
+    for name, spec in pairs(tmpl.params) do
+        params[name] = spec.default
+    end
+    return params
+end
+
+describe("overseer.template.obazel provider metadata", function()
+    it("attaches bazel_target to the built task's metadata", function()
+        local provider = fresh_provider({
+            bazel_binary = "true",
+            overseer = {
+                generators = { { query_template = "kind(rule, %s:*)", args = { "build" } } },
+            },
+        }, { "//foo/bar:baz" })
+
+        local tmpl = generate(provider, workspace_dir)[1]
+        local task_def = tmpl.builder(default_params(tmpl))
+
+        assert.equal("//foo/bar:baz", task_def.metadata.bazel_target)
+    end)
+
+    it("preserves user-configured metadata alongside bazel_target", function()
+        local provider = fresh_provider({
+            bazel_binary = "true",
+            overseer = {
+                generators = {
+                    { query_template = "kind(rule, %s:*)", args = { "build" }, metadata = { foo = "bar" } },
+                },
+            },
+        }, { "//foo:target" })
+
+        local tmpl = generate(provider, workspace_dir)[1]
+        local task_def = tmpl.builder(default_params(tmpl))
+
+        assert.equal("//foo:target", task_def.metadata.bazel_target)
+        assert.equal("bar", task_def.metadata.foo)
+    end)
+
+    it("lets an explicit bazel_target in user-configured metadata take precedence", function()
+        local provider = fresh_provider({
+            bazel_binary = "true",
+            overseer = {
+                generators = {
+                    {
+                        query_template = "kind(rule, %s:*)",
+                        args = { "build" },
+                        metadata = { bazel_target = "custom" },
+                    },
+                },
+            },
+        }, { "//foo:target" })
+
+        local tmpl = generate(provider, workspace_dir)[1]
+        local task_def = tmpl.builder(default_params(tmpl))
+
+        assert.equal("custom", task_def.metadata.bazel_target)
+    end)
+end)

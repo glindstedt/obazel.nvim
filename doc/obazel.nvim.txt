@@ -161,6 +161,13 @@ obazel.GeneratorConfig                                  *obazel.GeneratorConfig*
            },
          }
 
+    Each generated template is aliased by its fully-qualified bazel target
+    label (e.g. `"//path/to:foo"`) and by the exact command string that will
+    run (e.g. `"bazel test //path/to:foo"`), so a specific target can be run
+    directly with `overseer.run_task({ name = "//path/to:foo" })` without
+    disambiguating via `overseer.TAG`, which is a template-selection filter
+    and doesn't carry over to the resulting task.
+
     Fields: ~
         {query_template}             (string)                                    a query template where '%s' will be replaced by the target_prefix
         {args?}                      (string[])                                  (optional) args that will be passed to bazel before the targets; omit for none, e.g. `binary target`
@@ -168,7 +175,7 @@ obazel.GeneratorConfig                                  *obazel.GeneratorConfig*
         {binary?}                    (string)                                    (optional) override the configured `bazel_binary` for generated tasks
         {cwd?}                       (string|fun(workspace_root:string):string)  (optional) task working directory, or a function of the resolved bazel workspace root that returns one; defaults to the workspace root
         {env?}                       (table<string,string>)                      (optional) environment variables for generated tasks
-        {metadata?}                  (table)                                     (optional) arbitrary metadata for generated tasks
+        {metadata?}                  (table)                                     (optional) arbitrary metadata for generated tasks; a `bazel_target` key is always added automatically with the fully-qualified target label, so completed/running tasks can be matched back to the target they came from (see |overseer.Task|), unless this table sets `bazel_target` itself, which takes precedence
         {components?}                (overseer.Serialized[])                     (optional) overseer components for generated tasks
         {relative_file_root?}        (string|fun(workspace_root:string):string)  (optional) root for resolving relative paths reported by output-parsing components (e.g. compiler diagnostics), or a function of the resolved bazel workspace root that returns one; defaults to the workspace root. Unlike overseer's own `relative_file_root` param, this does *not* fall back to task `cwd` when unset: bazel's own diagnostics are reported relative to the workspace root regardless of `cwd`, so obazel pins this independently rather than letting it silently track a `cwd` override.
         {template_file_definition?}  (table)                                     (optional) overrides values in the base overseer.TemplateFileDefinition

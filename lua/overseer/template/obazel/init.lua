@@ -181,7 +181,14 @@ function provider.generator(opts, cb)
                                     args = qargs,
                                     cwd = params.cwd,
                                     env = params.env,
-                                    metadata = metadata,
+                                    -- Recoverable from the running/finished Task afterwards
+                                    -- (e.g. `task.metadata.bazel_target`), unlike the `target`
+                                    -- alias above which only helps at template-selection time.
+                                    metadata = vim.tbl_extend(
+                                        "force",
+                                        { bazel_target = params.target },
+                                        metadata or {}
+                                    ),
                                     components = components,
                                     default_component_params = { relative_file_root = params.relative_file_root },
                                 }
