@@ -112,3 +112,25 @@ vim.g.obazel = {
   },
 }
 ```
+
+`vim.g.obazel` may also be set to a function that returns the config
+table, called lazily whenever obazel reads its configuration:
+
+```lua
+vim.g.obazel = function()
+  return {
+    overseer = {
+      templates = { ... },
+    },
+  }
+end
+```
+
+Only the function itself is stored in `vim.g.obazel`; its return value
+never passes through `vim.g`'s own value conversion. This matters because
+`vim.g` variables are round-tripped through Vimscript, which requires
+every table to be either a list (only integer keys) or a dict (only
+string keys), never both. Overseer components like
+`{ "on_output_parse", errorformat = "..." }` mix both in a single table,
+so a `templates`/`generators` entry that carries nontrivial components
+can only be expressed this way.
