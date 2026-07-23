@@ -119,6 +119,15 @@ vim.g.obazel = {
           tags = { "BUILD" },
         },
       },
+      {
+        -- `args` is optional; omitting it produces just "binary target",
+        -- e.g. for a custom wrapper script that takes a target directly.
+        query_template = "kind(rule, %s:*)",
+        binary = "foo",
+        template_file_definition = {
+          tags = { "FOO" },
+        },
+      },
     },
   },
 }
@@ -146,17 +155,45 @@ string keys), never both. Overseer components like
 so a `templates`/`generators` entry that carries nontrivial components
 can only be expressed this way.
 
-Each entry in `templates`/`generators` also accepts `after_target_args`, `env`,
-`metadata`, and `components`, which are merged into the
+Each entry in `templates`/`generators` also accepts `args`, `after_target_args`,
+`binary`, `env`, `metadata`, and `components`, which are merged into the
 `overseer.TaskDefinition` produced for that template/generated task (see
 `obazel.TemplateConfig` and `obazel.GeneratorConfig`). These are distinct
 from `template`/`template_file_definition`, which only affect the
 `overseer.TemplateDefinition` shown in `:OverseerRun`; fields like
 `components`, `env`, and `metadata` have no effect there, since they belong
-to the task, not the template.
+to the task, not the template. `args` and `binary` are both optional:
+omitting `args` produces a command with none (just `binary target` for
+generators), and omitting `binary` falls back to the top-level
+`bazel_binary`.
 
 The name of a generated task (from `generators`, not `templates`) starts
-with the tail of `config.bazel_binary` (e.g. `/usr/bin/bazelisk` becomes
-`bazelisk`), followed by `args`, the resolved target, and `after_target_args`,
-so task names stay accurate and distinct even when `bazel_binary` or
+with the tail of `binary` (its own `binary` if set, otherwise the tail of
+`config.bazel_binary`, e.g. `/usr/bin/bazelisk` becomes `bazelisk`),
+followed by `args`, the resolved target, and `after_target_args`, so task
+names stay accurate and distinct even when `binary`, `args`, or
 `after_target_args` differ between generator entries.
+
+Because `template`/`template_file_definition` are plain
+`overseer.TemplateDefinition`/`overseer.TemplateFileDefinition` tables, you
+can also supply your own `builder` there to fully replace obazel's. Doing so
+still gives you access to everything obazel would otherwise have used to
+build the task: `binary`, `args`, `after_target_args`, `env`, `metadata`,
+`components`, and (for `generators` only) the resolved `target`, via the
+`params` argument overseer passes to `builder(params)`:
+
+```lua
+{
+  query_template = "tests(%s:*)",
+  args = { "test" },
+  template_file_definition = {
+    builder = function(params)
+      return {
+        cmd = { params.binary },
+        args = { "test", params.target, "--test_output=all" },
+        env = params.env,
+      }
+    end,
+  },
+}
+```

@@ -132,8 +132,9 @@ obazel.TemplateConfig                                    *obazel.TemplateConfig*
          }
 
     Fields: ~
-        {args}                (string[])                     the args that will be passed to bazel
+        {args?}               (string[])                     (optional) the args that will be passed to bazel; omit for none, e.g. `binary target`
         {after_target_args?}  (string[])                     (optional) args appended after `args`, e.g. for flags to pass through to the target itself via `--`
+        {binary?}             (string)                       (optional) override the configured `bazel_binary` for this template
         {env?}                (table<string,string>)         (optional) environment variables for the task
         {metadata?}           (table)                        (optional) arbitrary metadata for the task
         {components?}         (overseer.Serialized[])        (optional) overseer components for the task
@@ -160,8 +161,9 @@ obazel.GeneratorConfig                                  *obazel.GeneratorConfig*
 
     Fields: ~
         {query_template}             (string)                 a query template where '%s' will be replaced by the target_prefix
-        {args}                       (string[])               args that will be passed to bazel before the targets
+        {args?}                      (string[])               (optional) args that will be passed to bazel before the targets; omit for none, e.g. `binary target`
         {after_target_args?}         (string[])               (optional) args appended after the resolved target, e.g. for flags to pass through to the target itself via `--`
+        {binary?}                    (string)                 (optional) override the configured `bazel_binary` for generated tasks
         {env?}                       (table<string,string>)   (optional) environment variables for generated tasks
         {metadata?}                  (table)                  (optional) arbitrary metadata for generated tasks
         {components?}                (overseer.Serialized[])  (optional) overseer components for generated tasks
