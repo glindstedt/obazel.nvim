@@ -50,6 +50,26 @@
 ---       },
 ---     }
 ---
+---`vim.g.obazel` may also be set to a function that returns the config
+---table, called lazily whenever obazel reads its configuration:
+--->lua
+---     vim.g.obazel = function()
+---       return {
+---         overseer = {
+---           templates = { ... },
+---         },
+---       }
+---     end
+---
+---Only the function itself is stored in `vim.g.obazel`; its return value
+---never passes through `vim.g`'s own value conversion. This matters
+---because `vim.g` variables are round-tripped through Vimscript, which
+---requires every table to be either a list (only integer keys) or a dict
+---(only string keys), never both. Overseer components like
+---`{ "on_output_parse", errorformat = "..." }` mix both in a single
+---table, so a `templates`/`generators` entry that carries nontrivial
+---components can only be expressed this way.
+---
 ---@brief ]]
 
 ---@class obazel.Config
@@ -70,7 +90,12 @@
 ---         template = { name = "bazel run //:gazelle" },
 ---     }
 ---@class obazel.TemplateConfig
----@field args string[] the args that will be passed to bazel
+---@field args? string[] (optional) the args that will be passed to bazel; omit for none, e.g. `binary target`
+---@field after_target_args? string[] (optional) args appended after `args`, e.g. for flags to pass through to the target itself via `--`
+---@field binary? string (optional) override the configured `bazel_binary` for this template
+---@field env? table<string, string> (optional) environment variables for the task
+---@field metadata? table (optional) arbitrary metadata for the task
+---@field components? overseer.Serialized[] (optional) overseer components for the task
 ---@field template overseer.TemplateDefinition the template definition
 
 ---A template generator using a bazel query.
@@ -91,7 +116,12 @@
 ---     }
 ---@class obazel.GeneratorConfig
 ---@field query_template string a query template where '%s' will be replaced by the target_prefix
----@field args string[] args that will be passed to bazel before the targets
+---@field args? string[] (optional) args that will be passed to bazel before the targets; omit for none, e.g. `binary target`
+---@field after_target_args? string[] (optional) args appended after the resolved target, e.g. for flags to pass through to the target itself via `--`
+---@field binary? string (optional) override the configured `bazel_binary` for generated tasks
+---@field env? table<string, string> (optional) environment variables for generated tasks
+---@field metadata? table (optional) arbitrary metadata for generated tasks
+---@field components? overseer.Serialized[] (optional) overseer components for generated tasks
 ---@field template_file_definition? table (optional) overrides values in the base overseer.TemplateFileDefinition
 ---@see overseer.TemplateFileDefinition
 

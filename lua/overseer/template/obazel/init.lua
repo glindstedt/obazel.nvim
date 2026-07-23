@@ -43,14 +43,33 @@ function provider.generator(opts, cb)
     local templates = {}
 
     for _, template_config in ipairs(config.overseer.templates) do
-        local args = template_config.args
+        local binary = template_config.binary or config.bazel_binary
+        local metadata = template_config.metadata
+        local components = template_config.components
+
         table.insert(
             templates,
             vim.tbl_deep_extend("force", {
-                builder = function()
+                ---@type overseer.Params
+                params = {
+                    binary = { type = "string", optional = true, default = binary },
+                    args = { type = "list", delimiter = " ", optional = true, default = template_config.args or {} },
+                    after_target_args = {
+                        type = "list",
+                        delimiter = " ",
+                        optional = true,
+                        default = template_config.after_target_args or {},
+                    },
+                    env = { type = "opaque", optional = true, default = template_config.env },
+                },
+                builder = function(params)
+                    vim.list_extend(params.args, params.after_target_args)
                     return {
-                        cmd = { config.bazel_binary },
-                        args = args,
+                        cmd = { params.binary },
+                        args = params.args,
+                        env = params.env,
+                        metadata = metadata,
+                        components = components,
                     }
                 end,
             }, template_config.template)
@@ -67,6 +86,13 @@ function provider.generator(opts, cb)
 
     for _, query_config in ipairs(generators) do
         local query = query_config.query_template:format(target_prefix)
+        local binary = query_config.binary or config.bazel_binary
+        -- Used for the generated task name below, e.g. "/usr/bin/bazelisk" -> "bazelisk"
+        local binary_tail = vim.fn.fnamemodify(binary, ":t")
+        local args = query_config.args or {}
+        local after_target_args = query_config.after_target_args or {}
+        local metadata = query_config.metadata
+        local components = query_config.components
 
         bazel.query(query, function(targets, err2)
             if err2 ~= nil then
@@ -75,16 +101,45 @@ function provider.generator(opts, cb)
                 for _, target in ipairs(targets) do
                     -- TODO toggleable in config to show short or long targets?
                     local short_target = remove_prefix(target, target_prefix)
-                    local qargs = vim.list_extend(vim.deepcopy(query_config.args), { target })
+
+                    -- Mirrors the order of the args built in `builder` below
+                    -- (binary, base args, target, after_target_args), but with
+                    -- `short_target` in place of the fully-qualified target
+                    -- for readability. `args`/`after_target_args` default to
+                    -- {}, so an entry with neither set produces just
+                    -- "binary target", e.g. "foo //blah/blah:target".
+                    local name_parts = { binary_tail }
+                    vim.list_extend(name_parts, args)
+                    table.insert(name_parts, short_target)
+                    vim.list_extend(name_parts, after_target_args)
 
                     table.insert(
                         templates,
                         vim.tbl_deep_extend("force", {
-                            name = ("bazel %s %s"):format(table.concat(query_config.args, " "), short_target),
-                            builder = function()
+                            name = table.concat(name_parts, " "),
+                            ---@type overseer.Params
+                            params = {
+                                binary = { type = "string", optional = true, default = binary },
+                                args = { type = "list", delimiter = " ", optional = true, default = args },
+                                target = { type = "string", optional = true, default = target },
+                                after_target_args = {
+                                    type = "list",
+                                    delimiter = " ",
+                                    optional = true,
+                                    default = after_target_args,
+                                },
+                                env = { type = "opaque", optional = true, default = query_config.env },
+                            },
+                            builder = function(params)
+                                local qargs = vim.deepcopy(params.args)
+                                table.insert(qargs, params.target)
+                                vim.list_extend(qargs, params.after_target_args)
                                 return {
-                                    cmd = { config.bazel_binary },
+                                    cmd = { params.binary },
                                     args = qargs,
+                                    env = params.env,
+                                    metadata = metadata,
+                                    components = components,
                                 }
                             end,
                         }, query_config.template_file_definition or {})
