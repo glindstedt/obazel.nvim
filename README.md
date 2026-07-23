@@ -80,7 +80,7 @@ vim.g.obazel = {
     templates = {
       {
         args = { "run", "//:gazelle" },
-        template = { name = "bazel run //:gazelle", priority = 50 },
+        template = { name = "bazel run //:gazelle" },
       },
     },
     -- Task templates generated via bazel queries. The '%s' sign in the
@@ -92,7 +92,6 @@ vim.g.obazel = {
         args = { "test" },
         template_file_definition = {
           tags = { "TEST" },
-          priority = 51,
         },
       },
       {
@@ -100,7 +99,6 @@ vim.g.obazel = {
         args = { "run" },
         template_file_definition = {
           tags = { "RUN" },
-          priority = 52,
         },
       },
       {
@@ -108,7 +106,6 @@ vim.g.obazel = {
         args = { "build" },
         template_file_definition = {
           tags = { "BUILD" },
-          priority = 100,
         },
       },
     },
